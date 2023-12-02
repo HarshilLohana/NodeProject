@@ -1,6 +1,8 @@
 const employeeModel = require('../model/EmployeeModel')
 const { encryptPassword } = require('../util/PasswordEncryption')
 const tokenUtil = require('../util/TokenGeneration')
+const readDataFromExcel = require("../util/ReadDataFromExcel");
+const multer = require('multer');
 
 const getEmployees = async (req,res)=>{
     const employeeList = await employeeModel.find()
@@ -172,6 +174,41 @@ const getEmployeesCount = async (req,res)=>{
     res.status(500).send("Error in Fetching data")
   }
 }
+const storage = multer.diskStorage({
+  destination: './uploads',
+  filename:(req,file,cb) => {
+      cb(null,file.originalname);
+  }
+})
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1000000 },
+}).single("file");
+
+const addBulkEmployee = async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      res.status(500).json({
+        message: err.message,
+      });
+    } else {
+      console.log(req.file.path);
+      const data = readDataFromExcel.readDataFromExcel(req.file.path);
+
+      const flag = await employeeModel.insertMany(data);
+      if (flag) {
+        res.status(200).json({
+          message: "success",
+          data: flag,
+        });
+      } else {
+        res.status(200).json({
+          message: "failed",
+        });
+      }
+    }
+  });
+};
 
 module.exports = {
     getEmployees,
@@ -180,5 +217,6 @@ module.exports = {
     updateEmployee,
     getEmployeeById,
     login,
-    getEmployeesCount
+    getEmployeesCount,
+    addBulkEmployee
   };

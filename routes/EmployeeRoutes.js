@@ -13,4 +13,5 @@ router.delete('/employee/:id',employeeController.deleteEmployee)
 router.put('/employee/:id',employeeController.updateEmployee)
 router.get('/employee/:id',employeeController.getEmployeeById)
 router.get('employee/login',employeeController.login)
+router.post("/employee/bulk",employeeController.addBulkEmployee);
 module.exports = router;
